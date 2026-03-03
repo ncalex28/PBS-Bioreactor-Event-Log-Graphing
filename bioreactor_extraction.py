@@ -1,16 +1,24 @@
 # streamlit_app.py
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import io
+from datetime import datetime
 
-st.title("Bioreactor Data Viewer")
+st.title("PBS 3L Report Viewer")
 
-uploaded_file = st.file_uploader("Upload your reactor CSV", type="csv")
+uploaded_file = st.file_uploader("Upload your PBS 3L report CSV", type="csv")
 
 if uploaded_file is not None:
 
     df = pd.read_csv(uploaded_file)
+
+    # ---- Experiment Name Input ----
+    experiment_name = st.text_input(
+        "Experiment / Condition Name",
+        value="Bioreactor_Run"
+    )
 
     # ---- Tidy automatically ----
     tidy_list = []
@@ -27,15 +35,13 @@ if uploaded_file is not None:
 
     tidy = pd.concat(tidy_list, ignore_index=True).sort_values("time")
 
-    st.success("Data tidied successfully!")
-
-    # ---- Variable selection ----
     all_vars = tidy["variable"].unique().tolist()
+    default_vars= ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgSP(RPM)']
 
     selected_vars = st.multiselect(
         "Select variables to plot",
         all_vars,
-        default=all_vars[:5]
+        default= default_vars
     )
 
     if selected_vars:
@@ -47,7 +53,8 @@ if uploaded_file is not None:
             x="time",
             y="value",
             facet_row="variable",
-            height=300 * len(selected_vars)
+            height=300 * len(selected_vars),
+            title=experiment_name
         )
 
         fig.update_yaxes(matches=None)
@@ -56,13 +63,28 @@ if uploaded_file is not None:
 
         st.plotly_chart(fig, use_container_width=True)
 
-        # ---- HTML export ----
+        # -------- File naming --------
+        safe_name = experiment_name.replace(" ", "_")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+
+        # -------- HTML Download --------
         html_buffer = io.StringIO()
         fig.write_html(html_buffer, full_html=True)
 
         st.download_button(
             label="Download Interactive HTML",
             data=html_buffer.getvalue(),
-            file_name="bioreactor_plot.html",
+            file_name=f"{safe_name}_{timestamp}.html",
             mime="text/html"
+        )
+
+        # -------- PDF Download --------
+        pdf_buffer = io.BytesIO()
+        fig.write_image(pdf_buffer, format="pdf")
+
+        st.download_button(
+            label="Download PDF",
+            data=pdf_buffer.getvalue(),
+            file_name=f"{safe_name}_{timestamp}.pdf",
+            mime="application/pdf"
         )
