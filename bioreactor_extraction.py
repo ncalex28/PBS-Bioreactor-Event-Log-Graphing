@@ -17,7 +17,7 @@ if uploaded_file is not None:
     # ---- Experiment Name Input ----
     experiment_name = st.text_input(
         "Experiment / Condition Name",
-        value="Bioreactor_Run"
+        value="enter a report ID"
     )
 
     # ---- Tidy automatically ----
