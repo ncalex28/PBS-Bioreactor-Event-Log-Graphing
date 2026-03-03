@@ -16,7 +16,7 @@ if uploaded_file is not None:
 
     # ---- Experiment Name Input ----
     experiment_name = st.text_input(
-        "Experiment / Condition Name",
+        "Report ID:",
         value="enter a report ID"
     )
 
