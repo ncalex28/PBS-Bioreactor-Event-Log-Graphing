@@ -60,47 +60,47 @@ selected_vars = st.multiselect(
     default= default_vars
 )
     
-    if selected_vars:
+if selected_vars:
 
-        plot_df = tidy.query("variable in @selected_vars")
+    plot_df = tidy.query("variable in @selected_vars")
 
-        fig = px.line(
-            plot_df,
-            x="time",
-            y="value",
-            facet_row="variable",
-            height=300 * len(selected_vars),
-            title=experiment_name
-        )
+    fig = px.line(
+        plot_df,
+        x="time",
+        y="value",
+        facet_row="variable",
+        height=300 * len(selected_vars),
+        title=experiment_name
+    )
 
-        fig.update_yaxes(matches=None)
-        fig.update_xaxes(matches="x")
-        fig.update_layout(showlegend=False)
+    fig.update_yaxes(matches=None)
+    fig.update_xaxes(matches="x")
+    fig.update_layout(showlegend=False)
 
-        st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
 
-        # -------- File naming --------
-        safe_name = experiment_name.replace(" ", "_")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+# -------- File naming --------
+safe_name = experiment_name.replace(" ", "_")
+timestamp = datetime.now().strftime("%Y%m%d_%H%M")
 
-        # -------- HTML Download --------
-        html_buffer = io.StringIO()
-        fig.write_html(html_buffer, full_html=True)
+# -------- HTML Download --------
+html_buffer = io.StringIO()
+fig.write_html(html_buffer, full_html=True)
 
-        st.download_button(
-            label="Download Interactive HTML",
-            data=html_buffer.getvalue(),
-            file_name=f"{safe_name}_{timestamp}.html",
-            mime="text/html"
-        )
+st.download_button(
+label="Download Interactive HTML",
+data=html_buffer.getvalue(),
+file_name=f"{safe_name}_{timestamp}.html",
+mime="text/html"
+)
 
-        # -------- PDF Download --------
-        pdf_buffer = io.BytesIO()
-        fig.write_image(pdf_buffer, format="pdf")
+# -------- PDF Download --------
+pdf_buffer = io.BytesIO()
+fig.write_image(pdf_buffer, format="pdf")
 
-        st.download_button(
-            label="Download PDF",
-            data=pdf_buffer.getvalue(),
-            file_name=f"{safe_name}_{timestamp}.pdf",
-            mime="application/pdf"
-        )
+st.download_button(
+label="Download PDF",
+data=pdf_buffer.getvalue(),
+file_name=f"{safe_name}_{timestamp}.pdf",
+mime="application/pdf"
+)
