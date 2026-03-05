@@ -25,7 +25,7 @@ if uploaded_file is not None:
 
     tidy_list = []
     
-    for col in df_report.columns:
+    for col in df.columns:
     
         # skip value columns
         if col.endswith(".1"):
@@ -33,9 +33,9 @@ if uploaded_file is not None:
     
         value_col = f"{col}.1"
     
-        if value_col in df_report.columns:
+        if value_col in df.columns:
     
-            temp = df_report[[col, value_col]].copy()
+            temp = df[[col, value_col]].copy()
             temp.columns = ["time", "value"]
             temp["variable"] = col
     
