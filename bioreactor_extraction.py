@@ -20,21 +20,37 @@ if uploaded_file is not None:
         value="enter a report ID"
     )
 
-    # ---- Tidy automatically ----
-    tidy_list = []
-    for col in df.columns:
-        if col.endswith(".1"):
-            continue
-        value_col = f"{col}.1"
-        if value_col in df.columns:
-            temp = df[[col, value_col]].dropna()
-            temp.columns = ["time", "value"]
-            temp["variable"] = col
-            temp["time"] = pd.to_datetime(temp["time"], errors="coerce", infer_datetime_format=True)
-            tidy_list.append(temp)
 
-    tidy = pd.concat(tidy_list, ignore_index=True).sort_values("time")
+# ---- Tidy automatically ----
+tidy_list = []
 
+for col in df.columns:
+
+    if col.endswith(".1"):
+        continue
+
+    value_col = f"{col}.1"
+
+    if value_col in df.columns:
+
+        temp = df[[col, value_col]].copy()
+
+        temp.columns = ["time", "value"]
+
+        temp["time"] = pd.to_datetime(temp["time"], errors="coerce")
+        temp["value"] = pd.to_numeric(temp["value"], errors="coerce")
+
+        temp["variable"] = col
+
+        temp = temp.dropna(subset=["time"])
+
+        tidy_list.append(temp)
+
+tidy = (
+    pd.concat(tidy_list, ignore_index=True)
+    .sort_values("time")
+)
+    
     all_vars = tidy["variable"].unique().tolist()
     default_vars= ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgSP(RPM)']
 
@@ -43,7 +59,7 @@ if uploaded_file is not None:
         all_vars,
         default= default_vars
     )
-
+    
     if selected_vars:
 
         plot_df = tidy.query("variable in @selected_vars")
