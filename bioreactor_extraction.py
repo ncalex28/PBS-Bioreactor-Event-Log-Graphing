@@ -20,87 +20,83 @@ if uploaded_file is not None:
         value="enter a report ID"
     )
 
+    # ---- Tidy automatically ----
+    tidy_list = []
 
-# ---- Tidy automatically ----
-tidy_list = []
+    for col in df.columns:
 
-for col in df.columns:
+        if col.endswith(".1"):
+            continue
 
-    if col.endswith(".1"):
-        continue
+        value_col = f"{col}.1"
 
-    value_col = f"{col}.1"
+        if value_col in df.columns:
 
-    if value_col in df.columns:
+            temp = df[[col, value_col]].copy()
+            temp.columns = ["time", "value"]
 
-        temp = df[[col, value_col]].copy()
+            temp["time"] = pd.to_datetime(temp["time"], errors="coerce", infer_datetime_format=True)
+            temp["value"] = pd.to_numeric(temp["value"], errors="coerce")
 
-        temp.columns = ["time", "value"]
+            temp["variable"] = col
+            temp = temp.dropna(subset=["time"])
+            tidy_list.append(temp)
 
-        temp["time"] = pd.to_datetime(temp["time"], errors="coerce")
-        temp["value"] = pd.to_numeric(temp["value"], errors="coerce")
+    if tidy_list:
+        tidy = pd.concat(tidy_list, ignore_index=True).sort_values("time")
 
-        temp["variable"] = col
+        all_vars = tidy["variable"].unique().tolist()
+        default_vars = ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgSP(RPM)']
 
-        temp = temp.dropna(subset=["time"])
+        selected_vars = st.multiselect(
+            "Select variables to plot",
+            all_vars,
+            default=default_vars
+        )
 
-        tidy_list.append(temp)
+        if selected_vars:
 
-tidy = (
-    pd.concat(tidy_list, ignore_index=True)
-    .sort_values("time")
-)
-    
-all_vars = tidy["variable"].unique().tolist()
-default_vars= ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgSP(RPM)']
+            plot_df = tidy.query("variable in @selected_vars")
 
-selected_vars = st.multiselect(
-    "Select variables to plot",
-    all_vars,
-    default= default_vars
-)
-    
-if selected_vars:
+            fig = px.line(
+                plot_df,
+                x="time",
+                y="value",
+                facet_row="variable",
+                height=300 * len(selected_vars),
+                title=experiment_name
+            )
 
-    plot_df = tidy.query("variable in @selected_vars")
+            fig.update_yaxes(matches=None)
+            fig.update_xaxes(matches="x")
+            fig.update_layout(showlegend=False)
 
-    fig = px.line(
-        plot_df,
-        x="time",
-        y="value",
-        facet_row="variable",
-        height=300 * len(selected_vars),
-        title=experiment_name
-    )
+            st.plotly_chart(fig, use_container_width=True)
 
-    fig.update_yaxes(matches=None)
-    fig.update_xaxes(matches="x")
-    fig.update_layout(showlegend=False)
+            # -------- File naming --------
+            safe_name = experiment_name.replace(" ", "_")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M")
 
-    st.plotly_chart(fig, use_container_width=True)
+            # -------- HTML Download --------
+            html_buffer = io.StringIO()
+            fig.write_html(html_buffer, full_html=True)
 
-# -------- File naming --------
-safe_name = experiment_name.replace(" ", "_")
-timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+            st.download_button(
+                label="Download Interactive HTML",
+                data=html_buffer.getvalue(),
+                file_name=f"{safe_name}_{timestamp}.html",
+                mime="text/html"
+            )
 
-# -------- HTML Download --------
-html_buffer = io.StringIO()
-fig.write_html(html_buffer, full_html=True)
+            # -------- PDF Download --------
+            pdf_buffer = io.BytesIO()
+            fig.write_image(pdf_buffer, format="pdf")
 
-st.download_button(
-label="Download Interactive HTML",
-data=html_buffer.getvalue(),
-file_name=f"{safe_name}_{timestamp}.html",
-mime="text/html"
-)
-
-# -------- PDF Download --------
-pdf_buffer = io.BytesIO()
-fig.write_image(pdf_buffer, format="pdf")
-
-st.download_button(
-label="Download PDF",
-data=pdf_buffer.getvalue(),
-file_name=f"{safe_name}_{timestamp}.pdf",
-mime="application/pdf"
-)
+            st.download_button(
+                label="Download PDF",
+                data=pdf_buffer.getvalue(),
+                file_name=f"{safe_name}_{timestamp}.pdf",
+                mime="application/pdf"
+            )
+    else:
+        st.warning("No valid data columns found in the CSV.")
