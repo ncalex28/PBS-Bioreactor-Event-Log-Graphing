@@ -38,7 +38,7 @@ if uploaded_file is not None:
     tidy = pd.concat(tidy_list, ignore_index=True).sort_values("time")
 
     all_vars = tidy["variable"].unique().tolist()
-    default_vars= ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgSP(RPM)']
+    default_vars= ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgPV(RPM)', 'DOO2FlowControllerRequestLimited(%)']
 
     selected_vars = st.multiselect(
         "Select variables to plot",
