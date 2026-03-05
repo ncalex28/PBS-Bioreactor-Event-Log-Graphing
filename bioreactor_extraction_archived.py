@@ -30,7 +30,7 @@ if uploaded_file is not None:
             temp = df[[col, value_col]].dropna()
             temp.columns = ["time", "value"]
             temp["variable"] = col
-            temp["time"] = pd.to_datetime(temp["time"])
+            temp["time"] = pd.to_datetime(temp["time"], format="%m/%d/%Y %I:%M:%S %p", errors="coerce")
             tidy_list.append(temp)
 
     tidy = pd.concat(tidy_list, ignore_index=True).sort_values("time")
