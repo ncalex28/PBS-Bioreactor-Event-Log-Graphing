@@ -21,21 +21,33 @@ if uploaded_file is not None:
     )
 
     # ---- Tidy automatically ----
+
     tidy_list = []
-    for col in df.columns:
+    
+    for col in df_report.columns:
+        
+        # skip value columns
         if col.endswith(".1"):
             continue
+        
         value_col = f"{col}.1"
-        if value_col in df.columns:
-            temp = df[[col, value_col]].dropna()
+        
+        # only proceed if matching value column exists
+        if value_col in df_report.columns:
+            
+            temp = df_report[[col, value_col]].dropna()
             temp.columns = ["time", "value"]
             temp["variable"] = col
-            temp["time"] = pd.to_datetime(temp["time"], format="%m/%d/%Y %I:%M:%S %p", errors="coerce")
+            
+            temp["time"] = pd.to_datetime(temp["time"])
+            
             tidy_list.append(temp)
-
+    
+    # Combine everything
     tidy = pd.concat(tidy_list, ignore_index=True)
     tidy = tidy.sort_values("time")
-
+    
+    # Set variables and defaults
     all_vars = tidy["variable"].unique().tolist()
     default_vars= ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgSP(RPM)']
 
