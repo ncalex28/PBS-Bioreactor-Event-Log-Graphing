@@ -51,14 +51,14 @@ tidy = (
     .sort_values("time")
 )
     
-    all_vars = tidy["variable"].unique().tolist()
-    default_vars= ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgSP(RPM)']
+all_vars = tidy["variable"].unique().tolist()
+default_vars= ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgSP(RPM)']
 
-    selected_vars = st.multiselect(
-        "Select variables to plot",
-        all_vars,
-        default= default_vars
-    )
+selected_vars = st.multiselect(
+    "Select variables to plot",
+    all_vars,
+    default= default_vars
+)
     
     if selected_vars:
 
