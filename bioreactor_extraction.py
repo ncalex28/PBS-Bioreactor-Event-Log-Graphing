@@ -33,7 +33,8 @@ if uploaded_file is not None:
             temp["time"] = pd.to_datetime(temp["time"])
             tidy_list.append(temp)
 
-    tidy = pd.concat(tidy_list, ignore_index=True).sort_values("time")
+    tidy = pd.concat(tidy_list, ignore_index=True)
+    tidy = tidy.sort_values("time")
 
     all_vars = tidy["variable"].unique().tolist()
     default_vars= ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgSP(RPM)']
@@ -58,7 +59,7 @@ if uploaded_file is not None:
         )
 
         fig.update_yaxes(matches=None)
-        fig.update_xaxes(matches="x")
+        # fig.update_xaxes(matches="x")
         fig.update_layout(showlegend=False)
 
         st.plotly_chart(fig, use_container_width=True)
