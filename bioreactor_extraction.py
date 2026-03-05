@@ -21,49 +21,21 @@ if uploaded_file is not None:
     )
 
     # ---- Tidy automatically ----
-
-
     tidy_list = []
-    
     for col in df.columns:
-    
-        # skip value columns
         if col.endswith(".1"):
             continue
-    
         value_col = f"{col}.1"
-    
         if value_col in df.columns:
-    
-            temp = df[[col, value_col]].copy()
+            temp = df[[col, value_col]].dropna()
             temp.columns = ["time", "value"]
             temp["variable"] = col
-    
-            # Strip whitespace
             temp["time"] = temp["time"].astype(str).str.strip()
-    
-            # Force datetime format with AM/PM
-            temp["time"] = pd.to_datetime(
-                temp["time"], 
-                format="%m/%d/%Y %I:%M:%S %p", 
-                errors="coerce"
-            )
-    
-            # Convert value to numeric safely
-            temp["value"] = pd.to_numeric(temp["value"], errors="coerce")
-    
-            # Drop rows with invalid time
-            temp = temp.dropna(subset=["time"])
-    
+            temp["time"] = pd.to_datetime(temp["time"], format="%m/%d/%Y%I:%M:%S%p", errors="coerce")
             tidy_list.append(temp)
-    
-    if tidy_list:
-        tidy = pd.concat(tidy_list, ignore_index=True).sort_values("time")
-    else:
-        tidy = pd.DataFrame(columns=["time", "value", "variable"])
 
-    
-    # Set variables and defaults
+    tidy = pd.concat(tidy_list, ignore_index=True).sort_values("time")
+
     all_vars = tidy["variable"].unique().tolist()
     default_vars= ['pHPV', 'DOPV(%)', 'pHCO2User(%)', 'MainGasUser(LPM)', 'TempPV(C)', 'LevelPV(L)', 'AgSP(RPM)']
 
@@ -87,7 +59,7 @@ if uploaded_file is not None:
         )
 
         fig.update_yaxes(matches=None)
-        # fig.update_xaxes(matches="x")
+        fig.update_xaxes(matches="x")
         fig.update_layout(showlegend=False)
 
         st.plotly_chart(fig, use_container_width=True)
