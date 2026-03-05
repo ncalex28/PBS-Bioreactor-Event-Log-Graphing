@@ -22,30 +22,46 @@ if uploaded_file is not None:
 
     # ---- Tidy automatically ----
 
+
     tidy_list = []
     
-    for col in df.columns:
-        
+    for col in df_report.columns:
+    
         # skip value columns
         if col.endswith(".1"):
             continue
-        
+    
         value_col = f"{col}.1"
-        
-        # only proceed if matching value column exists
-        if value_col in df.columns:
-            
-            temp = df[[col, value_col]].dropna()
+    
+        if value_col in df_report.columns:
+    
+            temp = df_report[[col, value_col]].copy()
             temp.columns = ["time", "value"]
             temp["variable"] = col
-            
-            temp["time"] = pd.to_datetime(temp["time"])
-            
+    
+            # Strip whitespace
+            temp["time"] = temp["time"].astype(str).str.strip()
+    
+            # Force datetime format with AM/PM
+            temp["time"] = pd.to_datetime(
+                temp["time"], 
+                format="%m/%d/%Y %I:%M:%S %p", 
+                errors="coerce"
+            )
+    
+            # Convert value to numeric safely
+            temp["value"] = pd.to_numeric(temp["value"], errors="coerce")
+    
+            # Drop rows with invalid time
+            temp = temp.dropna(subset=["time"])
+    
             tidy_list.append(temp)
     
-    # Combine everything
-    tidy = pd.concat(tidy_list, ignore_index=True)
-    tidy = tidy.sort_values("time")
+    if tidy_list:
+        tidy = pd.concat(tidy_list, ignore_index=True).sort_values("time")
+    else:
+        tidy = pd.DataFrame(columns=["time", "value", "variable"])
+
     
     # Set variables and defaults
     all_vars = tidy["variable"].unique().tolist()
