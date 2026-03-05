@@ -20,32 +20,18 @@ if uploaded_file is not None:
         value="enter a report ID"
     )
 
-   # ---- Tidy automatically ----
-tidy_list = []
-
-for col in df.columns:
-
-    if col.endswith(".1"):
-        continue
-
-    value_col = f"{col}.1"
-
-    if value_col in df.columns:
-
-        temp = df[[col, value_col]].dropna()
-
-        temp.columns = ["time", "value"]
-
-        temp["variable"] = col
-
-        # robust datetime parsing
-        temp["time"] = pd.to_datetime(
-            temp["time"],
-            errors="coerce",
-            infer_datetime_format=True
-        )
-
-        tidy_list.append(temp)
+    # ---- Tidy automatically ----
+    tidy_list = []
+    for col in df.columns:
+        if col.endswith(".1"):
+            continue
+        value_col = f"{col}.1"
+        if value_col in df.columns:
+            temp = df[[col, value_col]].dropna()
+            temp.columns = ["time", "value"]
+            temp["variable"] = col
+            temp["time"] = pd.to_datetime(temp["time"], errors="coerce", infer_datetime_format=True)
+            tidy_list.append(temp)
 
     tidy = pd.concat(tidy_list, ignore_index=True).sort_values("time")
 
