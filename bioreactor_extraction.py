@@ -35,7 +35,7 @@ if uploaded_file is not None:
         # only proceed if matching value column exists
         if value_col in df_report.columns:
             
-            temp = df_report[[col, value_col]].dropna()
+            temp = df[[col, value_col]].dropna()
             temp.columns = ["time", "value"]
             temp["variable"] = col
             
