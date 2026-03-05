@@ -24,7 +24,7 @@ if uploaded_file is not None:
 
     tidy_list = []
     
-    for col in df_report.columns:
+    for col in df.columns:
         
         # skip value columns
         if col.endswith(".1"):
@@ -33,7 +33,7 @@ if uploaded_file is not None:
         value_col = f"{col}.1"
         
         # only proceed if matching value column exists
-        if value_col in df_report.columns:
+        if value_col in df.columns:
             
             temp = df[[col, value_col]].dropna()
             temp.columns = ["time", "value"]
